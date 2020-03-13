@@ -55,15 +55,14 @@ public class AndroidInterface : MonoBehaviour {
 	}
 
 
-	public static void ChargeByProductID(string productID)
+	public static void ChargeByProductID(string productID,string gameOrderId)
 	{
 		AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
 		mainActivity = jc.GetStatic<AndroidJavaObject>("currentActivity");
 
 		LogView.setViewText ("AndroidInterface,ChargeWithProductID,Unity call Java...productID=="+productID);
-		mainActivity.Call("ChargeByProductID", productID);
-
-		//Test ();
+		LogView.setViewText ("AndroidInterface,ChargeWithProductID,Unity call Java...gameOrderId=="+gameOrderId);
+		mainActivity.Call("ChargeByProductID", productID,gameOrderId);
 
 	}
 

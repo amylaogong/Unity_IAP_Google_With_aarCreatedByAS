@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 
 public class IAPCallBackResult{
@@ -124,7 +125,12 @@ public class IAPGoogle : MonoBehaviour {
 			productID = "item_charge_30";
 		}
 		LogView.setViewText ("IAPGoogle.cs,ChargeWithProductID,Unity call Java...productID=="+productID);
-		AndroidInterface.ChargeByProductID (productID);
+
+		DateTime dt = DateTime.Now; 
+		String dateStr = dt.ToString ("yyyyMMdd_HHmmss_fff");
+		string gameOrderID = "unity_"+dateStr;
+
+		AndroidInterface.ChargeByProductID (productID,gameOrderID);
 
 	}
 
