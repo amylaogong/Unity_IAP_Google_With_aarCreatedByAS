@@ -62,6 +62,7 @@
      <Compile Include="Assets\Scripts\Common\UIMsgTools.cs" />
      <Compile Include="Assets\Scripts\Common\UISinggleton.cs" />
      <Compile Include="Assets\Scripts\IAPGoogle.cs" />
+     <Compile Include="Assets\Scripts\RSAEncrypt.cs" />
      <Compile Include="Assets\Scripts\ScrollLog.cs" />
      <Compile Include="Assets\Scripts\UI_Msg\MsgAlert.cs" />
      <Compile Include="Assets\Scripts\UI_Msg\MsgScroll.cs" />

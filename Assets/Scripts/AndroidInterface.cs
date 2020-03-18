@@ -2,6 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+public class IAP_SKU_ID_JSON{
+	public int google_sku_count = 3;//数量
+	//预留6个档位吧，一般4个就够用了
+	public string google_sku_index_1 = "item_charge_1";//
+	public string google_sku_index_2 = "item_charge_2";//
+	public string google_sku_index_3 = "item_charge_30";//
+	public string google_sku_index_4;//
+	public string google_sku_index_5;//
+	public string google_sku_index_6;//
+}
+
+
 public class AndroidInterface : MonoBehaviour {
 
 	// Use this for initialization
@@ -46,12 +59,14 @@ public class AndroidInterface : MonoBehaviour {
 
 	public static void InitPay()
 	{
-		LogView.setViewText ("AndroidInterface.cs,InitPay,Unity call Java...InitPay");
-
+		
 		AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
 		mainActivity = jc.GetStatic<AndroidJavaObject>("currentActivity");
 
-		mainActivity.Call("InitPay",googlePayKey);
+		IAP_SKU_ID_JSON skuObj = new IAP_SKU_ID_JSON ();
+		string skuJson = JsonUtility.ToJson(skuObj);
+		LogView.setViewText ("AndroidInterface.cs,InitPay,Unity call Java...InitPay,skuJson=="+skuJson);
+		mainActivity.Call("InitPay",googlePayKey,skuJson);
 	}
 
 
@@ -75,6 +90,43 @@ public class AndroidInterface : MonoBehaviour {
 
 		mainActivity.Call("QuerySkuOnwed");
 	}
+
+
+	public static void ConsumedOwnedItem()
+	{
+		LogView.setViewText ("AndroidInterface.cs,ConsumedOwnedItem,Unity call Java...ConsumedOwnedItem");
+
+		AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+		mainActivity = jc.GetStatic<AndroidJavaObject>("currentActivity");
+
+		mainActivity.Call("ConsumedOwnedItem");
+	}
+
+	public static void VerifyPurchase(string goolgeOrder,string purchaseData,string signature)
+	{
+		LogView.setViewText ("AndroidInterface.cs,VerifyPurchase,Unity call Java...VerifyPurchase");
+
+		AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+		mainActivity = jc.GetStatic<AndroidJavaObject>("currentActivity");
+
+		mainActivity.Call("VerifyPurchase",goolgeOrder,purchaseData,signature);
+	}
+
+	public static void QuerrySkuDetail()
+	{
+		LogView.setViewText ("AndroidInterface.cs,QuerrySkuDetail,Unity call Java...QuerrySkuDetail");
+
+		AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+		mainActivity = jc.GetStatic<AndroidJavaObject>("currentActivity");
+
+		IAP_SKU_ID_JSON skuObj = new IAP_SKU_ID_JSON ();
+		string skuJson = JsonUtility.ToJson(skuObj);
+		LogView.setViewText ("AndroidInterface.cs,QuerrySkuDetail,Unity call Java...QuerrySkuDetail,skuJson=="+skuJson);
+		mainActivity.Call("QuerrySkuDetail",skuJson);
+
+	}
+
+
 
 	public static void DoLogin(string account,string passwd){
 		LogView.setViewText ("AndroidInterface.cs,222DoLogin,Unity call Java...DoLogin");
