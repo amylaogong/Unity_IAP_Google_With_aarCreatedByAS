@@ -126,6 +126,18 @@ public class AndroidInterface : MonoBehaviour {
 
 	}
 
+	public static void RunPayTaskOnce(string productID,string gameOrderId)
+	{
+		LogView.setViewText ("AndroidInterface.cs,RunPayTaskOnce,Unity call Java...RunPayTaskOnce");
+
+		AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+		mainActivity = jc.GetStatic<AndroidJavaObject>("currentActivity");
+
+		IAP_SKU_ID_JSON skuObj = new IAP_SKU_ID_JSON ();
+		string skuJson = JsonUtility.ToJson(skuObj);
+		mainActivity.Call("RunPayTaskOnce",googlePayKey,skuJson,productID,gameOrderId);
+	}
+
 
 
 	public static void DoLogin(string account,string passwd){

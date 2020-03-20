@@ -51,15 +51,15 @@ public class IAPCallBackResult{
 
 public enum IAP_PAY_STATE{
 	PAY_STATE_CONSUME_SUCCESS = 0,//消费成功
-	PAY_STATE_QUERRY_OWNEDSKU_SUCCESS = 1,
-	PAY_STATE_QUERRY_SKU_DETAILS= 2,
+	PAY_STATE_QUERRY_OWNEDSKU_SUCCESS = 1,//获取拥有的未消耗物品
+	PAY_STATE_QUERRY_SKU_DETAILS= 2,//获得商品详情，id和价格
 
 	PAY_STATE_SERVICE_INIT_FAILED = 1998,//初始化失败
 	PAY_STATE_SERVICE_READY = 1999,//初始化完毕，服务准备完毕
 	PAY_STATE_PROCESS_PURCHASE_CANCELLED=2001,//用户取消
-	PAY_STATE_PROCESS_PURCHASE=2000,//
-	PAY_STATE_PROCESS_PURCHASE_DONE=2002,//购买完成
-	PAY_STATE_PROCESS_CONSUME=3000,//消费有了回调，然后判断是否成功
+	PAY_STATE_PROCESS_PURCHASE=2000,////purchase过程中，再根据IapHeper的状态码判断进度
+	PAY_STATE_PROCESS_PURCHASE_DONE=2002,//购买完成，purcahse over支付完成还未消耗
+	PAY_STATE_PROCESS_CONSUME=3000,//消费有了回调，然后判断是否成功，成功之后就调用另一个方法了OnCallBackPaySuccess
 	PAY_STATE_VERIFY_CONSUME= 3001 // verify data
 }
 
@@ -71,6 +71,7 @@ public class IAPGoogle : MonoBehaviour {
 	public GameObject querryOwned;
 	public GameObject btnConsumedOwnedItem;
 	public GameObject btnQuerrySkuDetail;
+	public GameObject btnRunPayTaskOnce;
 
 
 	public Text dateText;
@@ -79,6 +80,9 @@ public class IAPGoogle : MonoBehaviour {
 
 	private string pubKey = "";
 	private string priKey = "";
+
+
+	private static long beginTime;
 
 	// Use this for initialization
 	void Start () {
@@ -89,7 +93,7 @@ public class IAPGoogle : MonoBehaviour {
 		btnConsumedOwnedItem = gameObject.transform.Find ("ConsumedOwnedItem").gameObject;
 
 		btnQuerrySkuDetail = gameObject.transform.Find ("QuerrySkuDetail").gameObject;
-
+		btnRunPayTaskOnce = gameObject.transform.Find ("RunPayTaskOnce").gameObject;
 
 		LogView.setViewText ("IAPGoogle,initpay=="+initpay);
 		LogView.setViewText ("IAPGoogle,querryOwned=="+querryOwned);
@@ -132,6 +136,12 @@ public class IAPGoogle : MonoBehaviour {
 			yield return new WaitForSeconds (0.3f);
 		}
 
+		while(UIEvent.Get (btnRunPayTaskOnce).OnClick==null){
+			UIEvent.Get (btnRunPayTaskOnce).OnClick = RunPayTaskOnce;
+			yield return new WaitForSeconds (0.3f);
+		}
+
+
 
 	}
 
@@ -152,18 +162,46 @@ public class IAPGoogle : MonoBehaviour {
 
 	public void InitPay(UIEventObj obj)
 	{
+		//UIManager.LoadUI ("UI_Loading");
 		AndroidInterface.InitPay ();
 	}
 
 
-	public void ChargeByProductID(UIEventObj obj)
+	public void RunPayTaskOnce(UIEventObj obj)
 	{
+		//UIManager.LoadUI ("UI_Loading");
+		beginTime = DateTime.Now.Ticks / 10000;
 		if (productID.Equals ("")) {
 			productID = "item_charge_1";
 		} else if (productID.Equals ("item_charge_1")) {
 			productID = "item_charge_2";
 		} else if (productID.Equals ("item_charge_2")) {
 			productID = "item_charge_30";
+		} else {
+			productID = "item_charge_1";
+		}
+		LogView.setViewText ("IAPGoogle.cs,RunPayTaskOnce,Unity call Java...productID=="+productID);
+
+		DateTime dt = DateTime.Now; 
+		String dateStr = dt.ToString ("yyyyMMdd_HHmmss_fff");
+		string gameOrderID = "unity_"+dateStr;
+
+		AndroidInterface.RunPayTaskOnce (productID,gameOrderID);
+
+	}
+
+	public void ChargeByProductID(UIEventObj obj)
+	{
+		beginTime = DateTime.Now.Ticks / 10000;
+		//UIManager.LoadUI ("UI_Loading");
+		if (productID.Equals ("")) {
+			productID = "item_charge_1";
+		} else if (productID.Equals ("item_charge_1")) {
+			productID = "item_charge_2";
+		} else if (productID.Equals ("item_charge_2")) {
+			productID = "item_charge_30";
+		}else {
+			productID = "item_charge_1";
 		}
 		LogView.setViewText ("IAPGoogle.cs,ChargeWithProductID,Unity call Java...productID=="+productID);
 
@@ -177,6 +215,7 @@ public class IAPGoogle : MonoBehaviour {
 
 	public void QuerySkuOnwed(UIEventObj obj)
 	{
+		
 		RSAEncrypt.TestRSA ();
 
 		LogView.setViewText ("IAPGoogle.cs,111QuerySkuOnwed,Unity call Java...QuerySkuOnwed");
@@ -251,6 +290,9 @@ public class IAPGoogle : MonoBehaviour {
 			case IAP_PAY_STATE.PAY_STATE_VERIFY_CONSUME:
 				LogView.setViewText ("IAPGoogle.cs,IAPCallback,PAY_STATE_VERIFY_CONSUME...");
 				LogView.setViewText ("IAPGoogle.cs,IAPCallback,iapResult.purchase_verify_info=="+iapResult.purchase_verify_info);
+
+				LogView.setViewText ("IAPGoogle,IAPCallback,verify_totleUseTime=="+(DateTime.Now.Ticks / 10000-beginTime));
+		
 				break;
 			default:
 				LogView.setViewText ("IAPGoogle.cs,IAPCallback,OnServiceCallBack,iapResult.code has no deal whih state:"+iapResult.code);
@@ -290,10 +332,8 @@ public class IAPGoogle : MonoBehaviour {
 				LogView.setViewText ("IAPGoogle.cs,IAPCallback,consume success,then give the reward item...");
 				LogView.setViewText ("IAPGoogle.cs,IAPCallback,consume success,iapResult_getSku=="+iapResult.getSku);
 
-				String publicKeyGoogle = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAh+LmGYNVmHE2oQD/nLseF1n0if5evGkc7/K+fAFFTUHXKTcHpJrmexlJ+4rg2TUa5be0o21VTFipy8oBfCbrek0eIEf3vzf1LwEfunA9SRljmhoBZ41vv5IxVLl1opS7kM9vFcF3ov2PzbngP1lI9Iy/5QQXCGcVmP4ohnJMQvgCsgE0LhFlaGSPZ5hZi5vzg7hDO6wdpAg9pyYJTPc3oOyeGTPZUTgWsj8RAIQBegaSnmkOYFQvi5e17SsDiYgs3awgtWFQJEcMcko8P3BAGKuuolwDDKyMxtBqkHz+rYNeEHqApWa1DDfu5SLaYCva8qaiacCU4wteP9d19Pn7EwIDAQAB";
-				bool isCheckSucc = RSAEncrypt.VerifySignature (iapResult.getOriginalJson,publicKeyGoogle,iapResult.getSignature);
-				LogView.setViewText ("IAPGoogle,IAPCallback,isCheckSucc=="+isCheckSucc);
-
+				LogView.setViewText ("IAPGoogle,IAPCallback,totleUseTime=="+(DateTime.Now.Ticks / 10000 - beginTime));
+				beginTime = DateTime.Now.Ticks / 10000;
 
 				AndroidInterface.VerifyPurchase (iapResult.googleOrderId,iapResult.getOriginalJson,iapResult.getSignature);
 

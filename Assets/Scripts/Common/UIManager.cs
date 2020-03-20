@@ -16,11 +16,12 @@ public class UIManager : UISinggleton<UIManager> {
 
 	// Use this for initialization
 
-	public static string UIPrefabPath = "UI/Prefabs/";
-	public static string UIImagePath = "UI/Images/";
+	public static string UIPrefabPath = "Prefabs/";
+	public static string UIImagePath = "Images/";
 	public static bool isUIInitDone = false;
 
 	private static Dictionary<string,GameObject> UIPrefabPools= new Dictionary<string,GameObject>();
+	private static Dictionary<string,GameObject> UIObjPools= new Dictionary<string,GameObject>();
 
 	public bool isIphoneX = false;
 	public float edgeIphoneX = 40f;
@@ -118,6 +119,12 @@ public class UIManager : UISinggleton<UIManager> {
 		return canvasPrefeb;
 	}
 
+	public static void CloseUI(string name){
+		if(UIObjPools.ContainsKey(name)){
+			Destroy (UIObjPools[name]);
+		}
+	}
+
 	public static GameObject LoadUI(string name){
 		if (UIManager.getInstance ().mainCanvas == null) {
 			return null;
@@ -143,6 +150,8 @@ public class UIManager : UISinggleton<UIManager> {
 				rt.anchorMin = Vector2.zero;
 				rt.anchorMax = Vector2.one;
 			}
+
+			UIObjPools [name] = canvasObj;
 		}
 		return canvasObj;
 	}

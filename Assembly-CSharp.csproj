@@ -55,6 +55,7 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\AndroidInterface.cs" />
      <Compile Include="Assets\Scripts\Common\LogView.cs" />
+     <Compile Include="Assets\Scripts\Common\UI_Loading.cs" />
      <Compile Include="Assets\Scripts\Common\UIEvent.cs" />
      <Compile Include="Assets\Scripts\Common\UIEventFuncs.cs" />
      <Compile Include="Assets\Scripts\Common\UIManager.cs" />
